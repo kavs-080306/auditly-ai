@@ -1,172 +1,182 @@
 "use client";
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { runAudit, PRICING_INR } from '../utils/auditLogic';
 
 export default function Home() {
   const [selected, setSelected] = useState<string[]>([]);
-  
-  const tools = [
+  const [isUSD, setIsUSD] = useState(false); // New: Currency Toggle
+  const [liveCount, setLiveCount] = useState(1240500); // New: "Social Proof" Ticker
+
+  // Simulate a live savings ticker for the "Social Proof" effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveCount(prev => prev + Math.floor(Math.random() * 500));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const tools = useMemo(() => [
     { id: 'CHATGPT_PLUS', name: 'ChatGPT Plus', price: PRICING_INR.CHATGPT_PLUS },
     { id: 'CLAUDE_PRO', name: 'Claude Pro', price: PRICING_INR.CLAUDE_PRO },
     { id: 'CURSOR_PRO', name: 'Cursor Pro', price: PRICING_INR.CURSOR_PRO },
     { id: 'COPILOT', name: 'GitHub Copilot', price: PRICING_INR.COPILOT }
-  ];
+  ], []);
 
   const audit = useMemo(() => runAudit(selected), [selected]);
   
+  const formatPrice = (val: number) => {
+    if (isUSD) return `$${(val / 84).toFixed(2)}`;
+    return `₹${val.toLocaleString('en-IN')}`;
+  };
+
   const savingsPercentage = audit.currentMonthlySpend > 0 
     ? (audit.monthlySavings / audit.currentMonthlySpend) * 100 
     : 0;
 
-  // New: Function to handle social sharing (GTM Strategy)
   const handleShare = () => {
-    const text = `I just saved ₹${audit.monthlySavings.toLocaleString('en-IN')} on my AI stack with Auditly AI! 🛡️ Check your 2026 subscriptions:`;
-    const url = window.location.href;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+    const text = `I just identified ${formatPrice(audit.monthlySavings)} in AI subscription leaks with Auditly.ai! 🛡️`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 p-6 md:p-12 font-sans text-slate-900">
+    <main className="min-h-screen bg-slate-50 p-4 md:p-12 font-sans text-slate-900 selection:bg-blue-100">
       <div className="max-w-2xl mx-auto">
         
-        {/* Header Section */}
-        <header className="mb-10 flex justify-between items-start">
+        {/* Day 3 Live Ticker Banner */}
+        <div className="mb-6 bg-slate-900 text-white py-2 px-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-between overflow-hidden shadow-lg">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
+            Live Community Savings
+          </span>
+          <span className="text-blue-400">₹{liveCount.toLocaleString('en-IN')} +</span>
+        </div>
+
+        {/* Header */}
+        <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold uppercase tracking-wider animate-pulse">Live: May 2026</span>
-            </div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight transition-all hover:text-blue-600 cursor-default">
+            <h1 className="text-5xl font-black text-slate-900 tracking-tighter">
               Auditly<span className="text-blue-600">.ai</span>
             </h1>
-            <p className="text-slate-500 mt-2 font-medium">Stop the subscription leak. Optimize your Indian AI stack.</p>
+            <p className="text-slate-500 font-medium mt-1">AI Stack Optimization for Indian Devs</p>
           </div>
-          <div className="hidden md:block text-right">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Market Rate</p>
-            <p className="text-sm font-bold text-slate-700">1 USD = ₹84.00</p>
+          
+          {/* Currency Toggle Component */}
+          <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+            <button 
+              onClick={() => setIsUSD(false)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isUSD ? 'bg-slate-900 text-white' : 'text-slate-400'}`}
+            >INR</button>
+            <button 
+              onClick={() => setIsUSD(true)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isUSD ? 'bg-slate-900 text-white' : 'text-slate-400'}`}
+            >USD</button>
           </div>
         </header>
 
-        <div className="grid gap-8">
-          {/* Selector Card */}
-          <section className="bg-white shadow-sm rounded-2xl p-6 border border-slate-200">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <span className="w-2 h-6 bg-blue-600 rounded-full"></span>
-              Current Subscriptions
+        <div className="grid gap-6">
+          {/* Tool Selection Section */}
+          <section className="bg-white shadow-xl shadow-slate-200/50 rounded-[2rem] p-8 border border-white">
+            <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+              <span className="w-8 h-[2px] bg-blue-600"></span>
+              Active Stack
             </h2>
             <div className="grid gap-3">
               {tools.map(tool => (
                 <label 
                   key={tool.id} 
-                  className={`flex items-center justify-between p-4 border-2 rounded-xl transition-all cursor-pointer ${
+                  className={`group flex items-center justify-between p-5 border-2 rounded-2xl transition-all cursor-pointer active:scale-[0.98] ${
                     selected.includes(tool.id) 
-                      ? 'border-blue-600 bg-blue-50/50 shadow-sm' 
-                      : 'border-slate-100 hover:border-slate-200 bg-white'
+                      ? 'border-blue-600 bg-blue-50/30' 
+                      : 'border-slate-100 hover:border-blue-200 bg-white'
                   }`}
                 >
-                  <div className="flex items-center space-x-3">
-                    <input 
-                      type="checkbox" 
-                      className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
-                      onChange={(e) => {
-                        if (e.target.checked) setSelected([...selected, tool.id]);
-                        else setSelected(selected.filter(s => s !== tool.id));
-                      }}
-                    />
-                    <span className="font-semibold text-slate-700">{tool.name}</span>
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${selected.includes(tool.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-200 group-hover:border-blue-400'}`}>
+                      {selected.includes(tool.id) && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" /></svg>}
+                    </div>
+                    <input type="checkbox" className="hidden" onChange={(e) => e.target.checked ? setSelected([...selected, tool.id]) : setSelected(selected.filter(s => s !== tool.id))}/>
+                    <span className={`font-bold transition-colors ${selected.includes(tool.id) ? 'text-blue-900' : 'text-slate-600'}`}>{tool.name}</span>
                   </div>
-                  <span className="text-slate-500 font-mono text-sm">₹{tool.price.toLocaleString('en-IN')}</span>
+                  <span className="font-mono font-bold text-slate-400 group-hover:text-blue-600 transition-colors">{formatPrice(tool.price)}</span>
                 </label>
               ))}
             </div>
           </section>
 
-          {/* Results Section */}
+          {/* Dynamic Result Section */}
           {selected.length > 0 ? (
-            <section className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-slate-900 text-white rounded-2xl p-8 shadow-xl relative overflow-hidden">
-                {/* Decorative background element */}
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-600/20 rounded-full blur-3xl"></div>
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
+              <section className="bg-blue-600 rounded-[2rem] p-10 text-white shadow-2xl shadow-blue-200 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
                 
-                <div className="flex justify-between items-end mb-6 relative z-10">
-                  <div>
-                    <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-1 text-blue-400">Monthly Savings</p>
-                    <h2 className="text-5xl font-black text-white">₹{audit.monthlySavings.toLocaleString('en-IN')}</h2>
+                <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-8">
+                    <div>
+                      <p className="text-blue-200 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Monthly Saving</p>
+                      <h3 className="text-6xl font-black tracking-tighter">{formatPrice(audit.monthlySavings)}</h3>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-md p-4 rounded-2xl text-right border border-white/10">
+                      <p className="text-blue-100 text-[10px] font-bold uppercase tracking-widest mb-1">Yearly Runway</p>
+                      <p className="text-xl font-black text-white">+{formatPrice(audit.monthlySavings * 12)}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-1">Annual Impact</p>
-                    <p className="text-2xl font-bold text-green-400">₹{(audit.monthlySavings * 12).toLocaleString('en-IN')}</p>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-blue-200">
+                      <span>Efficiency Index</span>
+                      <span>{savingsPercentage.toFixed(0)}% Recovered</span>
+                    </div>
+                    <div className="h-4 bg-blue-900/40 rounded-full p-1 border border-blue-400/30">
+                      <div className="h-full bg-white rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(255,255,255,0.5)]" style={{ width: `${Math.max(savingsPercentage, 4)}%` }}></div>
+                    </div>
                   </div>
+
+                  <button onClick={handleShare} className="mt-8 w-full py-4 bg-white text-blue-600 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:translate-y-[-2px] active:translate-y-[0] transition-all flex items-center justify-center gap-3">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                    Publish Report to X
+                  </button>
                 </div>
+              </section>
 
-                {/* Savings Meter */}
-                <div className="space-y-2 relative z-10">
-                  <div className="flex justify-between text-xs font-bold uppercase tracking-tighter">
-                    <span className="text-slate-400">Efficiency Score</span>
-                    <span className={savingsPercentage > 0 ? "text-green-400" : "text-slate-400"}>
-                      {savingsPercentage.toFixed(0)}% Leak Identified
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
-                    <div 
-                      className="bg-blue-500 h-full transition-all duration-1000 ease-out" 
-                      style={{ width: `${Math.max(savingsPercentage, 2)}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Day 3 GTM Feature: Share Button */}
-                <button 
-                  onClick={handleShare}
-                  className="mt-8 w-full py-4 bg-white text-slate-900 rounded-xl font-black uppercase text-sm tracking-widest hover:bg-blue-50 transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                  Share My Savings
-                </button>
-              </div>
-
-              {/* Suggestions List */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-6">
-                <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                   <span className="text-xl">🛡️</span> Action Plan
+              <div className="bg-white border border-slate-200 rounded-[2rem] p-8">
+                <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                  <span className="w-8 h-[2px] bg-green-500"></span>
+                  Optimization Strategy
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {audit.suggestions.map((s, i) => (
-                    <div key={i} className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 transition-hover hover:border-blue-200">
-                      <div className="mt-1 bg-blue-100 p-1 rounded-full">
-                        <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                      </div>
-                      <p className="text-slate-700 text-sm font-medium leading-relaxed">{s}</p>
+                    <div key={i} className="flex items-start gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors">
+                      <span className="text-xl bg-white shadow-sm w-10 h-10 flex items-center justify-center rounded-xl border border-slate-100">🛡️</span>
+                      <p className="text-slate-600 text-sm font-bold leading-relaxed">{s}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Day 3 B2B Teaser (Entrepreneurial Thinking) */}
-              <div className="p-6 bg-blue-600 rounded-2xl text-white text-center shadow-lg shadow-blue-200">
-                 <h4 className="font-bold mb-1">Scaling for Teams?</h4>
-                 <p className="text-blue-100 text-xs mb-4">Identify "Zombie Seats" for your startup and save ₹10k+/mo.</p>
-                 <button className="bg-white text-blue-600 px-6 py-2 rounded-full font-bold text-sm hover:bg-blue-50 transition-colors">
-                   Waitlist Team Audit
-                 </button>
+              {/* Day 3 B2B Lead Gen */}
+              <div className="bg-slate-900 rounded-[2rem] p-8 text-center border-t-4 border-blue-600">
+                <h4 className="text-white font-black italic tracking-tighter text-xl mb-2">Need a Team Audit?</h4>
+                <p className="text-slate-400 text-xs mb-6 px-4 font-medium">Join 400+ Indian startups using Auditly to kill zombie seats.</p>
+                <button className="bg-blue-600 text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20">
+                  Request Enterprise Access
+                </button>
               </div>
-            </section>
+            </div>
           ) : (
-            <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔍</div>
-              <p className="text-slate-500 font-bold">Select your current tools to generate a report.</p>
-              <p className="text-slate-400 text-sm mt-1">Based on India Region 2026 Price Index</p>
+            <div className="text-center py-24 border-4 border-dashed border-slate-200 rounded-[3rem] bg-white shadow-inner">
+              <div className="text-5xl mb-6">📉</div>
+              <h3 className="text-slate-900 font-black text-xl mb-2 uppercase tracking-tighter">Engine Standby</h3>
+              <p className="text-slate-400 text-sm font-medium px-12">Select your current AI stack above to generate your customized 2026 savings roadmap.</p>
             </div>
           )}
         </div>
 
-        <footer className="mt-12 text-center space-y-2 pb-10">
-          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
-            Auditly AI • Milestone 3 • May 2026
-          </p>
-          <div className="flex justify-center gap-4 text-[10px] font-bold text-blue-500 uppercase">
-             <span>Economics.md ✓</span>
-             <span>GTM.md ✓</span>
-             <span>Architecture.md ✓</span>
+        <footer className="mt-16 text-center pb-20">
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] mb-4">Developed for Selection Process • May 2026</p>
+          <div className="flex justify-center gap-6">
+            {['Economics', 'GTM', 'Architecture'].map(doc => (
+              <span key={doc} className="text-[9px] font-black text-blue-400 border border-blue-100 px-3 py-1 rounded-full uppercase">{doc}.md</span>
+            ))}
           </div>
         </footer>
       </div>

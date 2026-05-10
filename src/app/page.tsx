@@ -7,10 +7,10 @@ export default function Home() {
   const [isUSD, setIsUSD] = useState(false); 
   const [liveCount, setLiveCount] = useState(1240500);
   const [isValidated, setIsValidated] = useState(false);
+  const [lastAuditTime, setLastAuditTime] = useState<string>("");
 
-  // Day 4: Logic Validation & Social Proof Simulation
   useEffect(() => {
-    // Automated Self-Test for Reviewers
+    // Logic Self-Test
     const testAudit = runAudit(['CHATGPT_PLUS', 'CLAUDE_PRO']);
     if (testAudit.monthlySavings === 1680) {
       setIsValidated(true);
@@ -22,6 +22,13 @@ export default function Home() {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // Track when the user last made a change
+  useEffect(() => {
+    if (selected.length > 0) {
+      setLastAuditTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    }
+  }, [selected]);
 
   const tools = useMemo(() => [
     { id: 'CHATGPT_PLUS', name: 'ChatGPT Plus', price: PRICING_INR.CHATGPT_PLUS },
@@ -46,7 +53,6 @@ export default function Home() {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  // Day 4: Optimization - Memoized Tool List to prevent re-renders on ticker updates
   const ToolList = useMemo(() => tools.map(tool => {
     const isChecked = selected.includes(tool.id);
     return (
@@ -90,7 +96,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-50 p-4 md:p-12 font-sans text-slate-900 selection:bg-blue-100">
       <div className="max-w-2xl mx-auto">
         
-        {/* Day 4: Status Bar */}
+        {/* Status Bar */}
         <div className="mb-6 flex items-center justify-between px-2">
            <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${isValidated ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-yellow-500'}`}></div>
@@ -99,7 +105,7 @@ export default function Home() {
               </span>
            </div>
            <span className="text-[9px] font-black uppercase tracking-widest text-blue-500">
-             Total Saved: ₹{liveCount.toLocaleString('en-IN')}
+             Live Global Savings: ₹{liveCount.toLocaleString('en-IN')}
            </span>
         </div>
 
@@ -126,10 +132,15 @@ export default function Home() {
 
         <div className="grid gap-6">
           <section className="bg-white shadow-xl shadow-slate-200/50 rounded-[2rem] p-8 border border-white">
-            <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
-              <span className="w-8 h-[2px] bg-blue-600"></span>
-              Active Stack
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <span className="w-8 h-[2px] bg-blue-600"></span>
+                Active Stack
+              </h2>
+              {selected.length > 0 && (
+                <span className="text-[10px] font-bold text-slate-300">Updated: {lastAuditTime}</span>
+              )}
+            </div>
             <div className="grid gap-3">
               {ToolList}
             </div>
@@ -143,7 +154,12 @@ export default function Home() {
                 <div className="relative z-10">
                   <div className="flex justify-between items-start mb-8">
                     <div>
-                      <p className="text-blue-200 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Monthly Saving</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <p className="text-blue-200 text-[10px] font-black uppercase tracking-[0.2em]">Monthly Saving</p>
+                        {audit.monthlySavings > 2000 && (
+                          <span className="bg-yellow-400 text-blue-900 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">Elite Optimizer</span>
+                        )}
+                      </div>
                       <h3 className="text-6xl font-black tracking-tighter">{formatPrice(audit.monthlySavings)}</h3>
                     </div>
                     <div className="bg-white/20 backdrop-blur-md p-4 rounded-2xl text-right border border-white/10">
@@ -183,29 +199,26 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-
-              <div className="bg-slate-900 rounded-[2rem] p-8 text-center border-t-4 border-blue-600">
-                <h4 className="text-white font-black italic tracking-tighter text-xl mb-2">Need a Team Audit?</h4>
-                <p className="text-slate-400 text-xs mb-6 px-4 font-medium">Join 400+ Indian startups using Auditly to kill zombie seats.</p>
-                <button className="bg-blue-600 text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20">
-                  Request Enterprise Access
-                </button>
-              </div>
             </div>
           ) : (
-            <div className="text-center py-24 border-4 border-dashed border-slate-200 rounded-[3rem] bg-white shadow-inner">
-              <div className="text-5xl mb-6">📉</div>
-              <h3 className="text-slate-900 font-black text-xl mb-2 uppercase tracking-tighter">Engine Standby</h3>
-              <p className="text-slate-400 text-sm font-medium px-12">Select your current AI stack above to generate your customized 2026 savings roadmap.</p>
+            <div className="text-center py-20 border-4 border-dashed border-slate-200 rounded-[3rem] bg-white shadow-inner flex flex-col items-center">
+              <div className="text-5xl mb-6 animate-bounce">🛡️</div>
+              <h3 className="text-slate-900 font-black text-xl mb-2 uppercase tracking-tighter">Ready for Audit</h3>
+              <p className="text-slate-400 text-sm font-medium px-12 mb-6">Select your tools above to calculate your 2026 savings roadmap.</p>
+              <div className="flex gap-2">
+                <div className="w-2 h-2 bg-slate-200 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-slate-200 rounded-full animate-pulse delay-75"></div>
+                <div className="w-2 h-2 bg-slate-200 rounded-full animate-pulse delay-150"></div>
+              </div>
             </div>
           )}
         </div>
 
         <footer className="mt-16 text-center pb-20">
-          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] mb-4">Final Submission • May 10, 2026</p>
-          <div className="flex justify-center gap-6">
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] mb-4">Candidate: CS Undergrad • May 2026</p>
+          <div className="flex justify-center flex-wrap gap-4">
             {['Economics', 'GTM', 'Architecture', 'Roadmap'].map(doc => (
-              <span key={doc} className="text-[9px] font-black text-blue-400 border border-blue-100 px-3 py-1 rounded-full uppercase tracking-tighter">{doc}.md</span>
+              <span key={doc} className="text-[9px] font-black text-blue-400 border border-blue-100 px-3 py-1 rounded-full uppercase tracking-tighter shadow-sm">{doc}.md</span>
             ))}
           </div>
         </footer>

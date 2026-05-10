@@ -6,7 +6,7 @@ export default function Home() {
   const [selected, setSelected] = useState<string[]>([]);
   const [isUSD, setIsUSD] = useState(false); 
   const [liveCount, setLiveCount] = useState(1240500);
-  const [isValidated, setIsValidated] = useState(false); // Day 4: QA Status
+  const [isValidated, setIsValidated] = useState(false);
 
   // Day 4: Logic Validation & Social Proof Simulation
   useEffect(() => {
@@ -45,6 +45,46 @@ export default function Home() {
     const text = `I just identified ${formatPrice(audit.monthlySavings)} in AI subscription leaks with Auditly.ai! 🛡️`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
+
+  // Day 4: Optimization - Memoized Tool List to prevent re-renders on ticker updates
+  const ToolList = useMemo(() => tools.map(tool => {
+    const isChecked = selected.includes(tool.id);
+    return (
+      <label 
+        key={tool.id} 
+        className={`group flex items-center justify-between p-5 border-2 rounded-2xl transition-all cursor-pointer active:scale-[0.98] ${
+          isChecked 
+            ? 'border-blue-600 bg-blue-50/30' 
+            : 'border-slate-100 hover:border-blue-200 bg-white'
+        }`}
+      >
+        <div className="flex items-center space-x-4">
+          <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${isChecked ? 'bg-blue-600 border-blue-600' : 'border-slate-200 group-hover:border-blue-400'}`}>
+            {isChecked && (
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+          <input 
+            type="checkbox" 
+            className="hidden" 
+            checked={isChecked}
+            onChange={() => isChecked 
+              ? setSelected(selected.filter(s => s !== tool.id)) 
+              : setSelected([...selected, tool.id])
+            }
+          />
+          <span className={`font-bold transition-colors ${isChecked ? 'text-blue-900' : 'text-slate-600'}`}>
+            {tool.name}
+          </span>
+        </div>
+        <span className="font-mono font-bold text-slate-400 group-hover:text-blue-600 transition-colors">
+          {formatPrice(tool.price)}
+        </span>
+      </label>
+    );
+  }), [tools, selected, isUSD]);
 
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-12 font-sans text-slate-900 selection:bg-blue-100">
@@ -91,25 +131,7 @@ export default function Home() {
               Active Stack
             </h2>
             <div className="grid gap-3">
-              {tools.map(tool => (
-                <label 
-                  key={tool.id} 
-                  className={`group flex items-center justify-between p-5 border-2 rounded-2xl transition-all cursor-pointer active:scale-[0.98] ${
-                    selected.includes(tool.id) 
-                      ? 'border-blue-600 bg-blue-50/30' 
-                      : 'border-slate-100 hover:border-blue-200 bg-white'
-                  }`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${selected.includes(tool.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-200 group-hover:border-blue-400'}`}>
-                      {selected.includes(tool.id) && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" /></svg>}
-                    </div>
-                    <input type="checkbox" className="hidden" onChange={(e) => e.target.checked ? setSelected([...selected, tool.id]) : setSelected(selected.filter(s => s !== tool.id))}/>
-                    <span className={`font-bold transition-colors ${selected.includes(tool.id) ? 'text-blue-900' : 'text-slate-600'}`}>{tool.name}</span>
-                  </div>
-                  <span className="font-mono font-bold text-slate-400 group-hover:text-blue-600 transition-colors">{formatPrice(tool.price)}</span>
-                </label>
-              ))}
+              {ToolList}
             </div>
           </section>
 
@@ -180,10 +202,10 @@ export default function Home() {
         </div>
 
         <footer className="mt-16 text-center pb-20">
-          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] mb-4">Final Submission • May 2026</p>
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] mb-4">Final Submission • May 10, 2026</p>
           <div className="flex justify-center gap-6">
             {['Economics', 'GTM', 'Architecture', 'Roadmap'].map(doc => (
-              <span key={doc} className="text-[9px] font-black text-blue-400 border border-blue-100 px-3 py-1 rounded-full uppercase">{doc}.md</span>
+              <span key={doc} className="text-[9px] font-black text-blue-400 border border-blue-100 px-3 py-1 rounded-full uppercase tracking-tighter">{doc}.md</span>
             ))}
           </div>
         </footer>

@@ -77,3 +77,25 @@ Building Auditly.ai in 4 days demonstrated the power of the "India-First" pricin
 
 ### 3. Conclusion
 Project is ready for deployment. Code is clean, documented, and type-safe.
+
+Day 5: Final Sprint & Platform Expansion
+Date: May 11, 2026
+
+Focus: Streamlit Porting & Logic Transparency
+
+Accomplishments
+Multi-Stack Support: Successfully ported the core React/Next.js audit logic into a Streamlit (Python) application to demonstrate versatility in data-driven environments.
+
+Logic Refinement: Resolved a UX friction point where "Savings" remained at 0 for single-tool selections. Added a Live Spend Tracker to provide immediate feedback on every user interaction, regardless of redundancy.
+
+Metric Dashboarding: Integrated st.metric and custom CSS cards to mimic a professional financial SaaS dashboard.
+
+Final QA: Verified the "Conflict Groups" logic (LLM overlap and IDE overlap) across both USD and INR currency modes.
+
+Technical Decisions
+The "Why" behind Streamlit: While Next.js is superior for high-traffic consumer web, Streamlit allowed for a faster "internal tool" feel, suitable for quick data audits by stakeholders.
+
+State Handling: Used Streamlit's reactive re-run model to calculate total_spend and potential_savings in real-time without needing a separate backend.
+
+Final Project Status
+The app is now "Interview Ready." It handles four major AI tools, identifies overlapping monthly costs, and provides actionable advice for the 2026 developer market.

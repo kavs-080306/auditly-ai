@@ -1,6 +1,5 @@
 import streamlit as st
 import random
-import time
 from datetime import datetime
 
 # --- Day 5: Streamlit Configuration ---
@@ -10,12 +9,15 @@ st.set_page_config(page_title="Auditly.ai | AI Stack Optimizer", page_icon="🛡
 st.markdown("""
     <style>
     .main { background-color: #f8fafc; }
+    [data-testid="stMetricValue"] { font-size: 1.8rem; font-weight: 900; color: #1e293b; }
     .stButton>button {
         width: 100%;
         border-radius: 12px;
         font-weight: bold;
         text-transform: uppercase;
         letter-spacing: 0.1em;
+        background-color: #2563eb;
+        color: white;
     }
     .metric-card {
         background-color: #2563eb;
@@ -24,6 +26,7 @@ st.markdown("""
         border-radius: 2rem;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         text-align: center;
+        margin-bottom: 20px;
     }
     .status-dot {
         height: 8px; width: 8px;
@@ -58,12 +61,12 @@ with col_h2:
 
 # Status Bar
 st.markdown(f"""
-    <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;'>
+    <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;'>
         <div style='font-size: 10px; font-weight: 900; color: #94a3b8;'>
-            <span class='status-dot'></span>SYSTEM: VERIFIED
+            <span class='status-dot'></span>SYSTEM: VERIFIED & LIVE
         </div>
         <div style='font-size: 10px; font-weight: 900; color: #2563eb;'>
-            TOTAL SAVED: ₹{st.session_state.live_count:,}
+            GLOBAL SAVINGS: ₹{st.session_state.live_count:,}
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -71,60 +74,76 @@ st.markdown(f"""
 # --- Selection Section ---
 st.markdown("### 🛠️ Active Stack")
 selected_tools = []
-for tool_id, price in PRICING_INR.items():
+cols = st.columns(2)
+
+# Display checkboxes in a grid for better UI
+for i, (tool_id, price) in enumerate(PRICING_INR.items()):
     display_name = tool_id.replace("_", " ").title()
     display_price = f"₹{price:,}" if currency == "INR" else f"${(price/84):.2f}"
     
-    if st.checkbox(f"{display_name} ({display_price})", key=tool_id):
-        selected_tools.append(tool_id)
+    with cols[i % 2]:
+        if st.checkbox(f"{display_name} ({display_price})", key=tool_id):
+            selected_tools.append(tool_id)
 
-# --- Audit Logic ---
+# --- Audit & Spend Logic ---
 if selected_tools:
-    total_spend = sum(PRICING_INR[t] for t in selected_tools)
+    current_monthly = sum(PRICING_INR[t] for t in selected_tools)
     savings = 0
     suggestions = []
 
-    # Logic: Identify Redundancies
+    # 1. Immediate Feedback: Current Spend Metrics
+    st.markdown("---")
+    m_col1, m_col2 = st.columns(2)
+    with m_col1:
+        spend_label = f"₹{current_monthly:,}" if currency == "INR" else f"${(current_monthly/84):.2f}"
+        st.metric("Total Monthly Cost", spend_label)
+    with m_col2:
+        st.metric("Active Subscriptions", len(selected_tools))
+
+    # 2. Logic: Identify Redundancies
     if "CHATGPT_PLUS" in selected_tools and "CLAUDE_PRO" in selected_tools:
         savings += 1680
-        suggestions.append("⚠️ **Redundant LLMs:** You're paying for both ChatGPT and Claude. Consider choosing one and using the free tier for the other.")
+        suggestions.append("⚠️ **Redundant LLMs:** ChatGPT Plus & Claude Pro overlap. Keep one to save **₹1,680**.")
     
     if "CURSOR_PRO" in selected_tools and "COPILOT" in selected_tools:
         savings += 840
-        suggestions.append("⚠️ **IDE Overlap:** Cursor Pro includes advanced autocomplete. You likely don't need a separate GitHub Copilot sub.")
+        suggestions.append("⚠️ **IDE Overlap:** Cursor Pro includes native autocomplete. You likely don't need GitHub Copilot.")
 
     # --- Results UI ---
-    st.markdown("---")
-    
-    # Savings Card
     save_val = f"₹{savings:,}" if currency == "INR" else f"${(savings/84):.2f}"
     yearly_val = f"₹{savings*12:,}" if currency == "INR" else f"${(savings*12/84):.2f}"
     
     st.markdown(f"""
         <div class="metric-card">
-            <p style='font-size: 10px; font-weight: 900; letter-spacing: 0.2em; color: #bfdbfe;'>MONTHLY SAVING</p>
-            <h1 style='font-size: 4rem; margin: 0;'>{save_val}</h1>
-            <p style='font-size: 12px; font-weight: bold;'>Yearly Impact: +{yearly_val}</p>
+            <p style='font-size: 10px; font-weight: 900; letter-spacing: 0.2em; color: #bfdbfe; margin-bottom: 10px;'>POTENTIAL SAVINGS RECOVERED</p>
+            <h1 style='font-size: 4rem; margin: 0; font-weight: 900;'>{save_val}</h1>
+            <p style='font-size: 14px; font-weight: bold; opacity: 0.9;'>Yearly Impact: +{yearly_val}</p>
         </div>
         """, unsafe_allow_html=True)
 
     # Strategy Section
-    st.markdown("### 🛡️ Optimization Strategy")
-    if suggestions:
-        for s in suggestions:
-            st.info(s)
-    else:
-        st.success("✅ Your stack is lean! No immediate leaks identified.")
+    with st.expander("🛡️ View Optimization Strategy", expanded=True):
+        if suggestions:
+            for s in suggestions:
+                st.warning(s)
+        else:
+            st.success("✅ No redundancies found. Your stack is highly efficient!")
 
     # Share Button
-    if st.button("SHARE REPORT TO X"):
-        text = f"I just identified {save_val} in AI leaks with Auditly.ai! 🛡️"
-        st.write(f"Link generated: [Click to Tweet](https://twitter.com/intent/tweet?text={text.replace(' ', '%20')})")
+    if st.button("SHARE AUDIT REPORT"):
+        text = f"I just identified {save_val} in AI subscription leaks with Auditly.ai! 🛡️"
+        st.info(f"Report ready! [Post to Twitter/X](https://twitter.com/intent/tweet?text={text.replace(' ', '%20')})")
 
 else:
     st.markdown("---")
-    st.info("📉 **Engine Standby:** Select your tools above to generate a savings roadmap.")
+    st.info("📉 **Engine Standby:** Select at least one tool to begin the audit.")
 
 # Footer
-st.markdown("---")
-st.markdown(f"<p style='text-align: center; font-size: 10px; color: #cbd5e1; font-weight: 900;'>FINAL SUBMISSION • {datetime.now().strftime('%B %Y')}</p>", unsafe_allow_html=True)
+st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown(f"""
+    <div style='text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px;'>
+        <p style='font-size: 10px; color: #94a3b8; font-weight: 900; letter-spacing: 0.3em;'>
+            FINAL SUBMISSION • CS UNDERGRAD • {datetime.now().strftime('%B %Y').upper()}
+        </p>
+    </div>
+    """, unsafe_allow_html=True)

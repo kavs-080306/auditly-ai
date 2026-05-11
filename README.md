@@ -1,29 +1,11 @@
-# Auditly.ai 🛡️
+Auditly.ai 🛡️DescriptionAuditly AI is a financial intelligence tool built for the 2026 AI-native workforce.As companies and developers rapidly adopt multiple AI tools, "Subscription Drift" has become a significant financial leak. Auditly AI performs a deep audit of an AI stack to:Identify Redundancies: Surfaces overlaps (e.g., paying for both ChatGPT Plus and Claude Pro).Code Stack Optimization: Flags IDE redundancies like Cursor Pro vs. GitHub Copilot.Localized Economic Insights: Provides real-time calculations in INR (₹) and USD ($) to help Indian startups understand their burn rate.🚀 Final Build Status: [Dual-Framework MVP]As of May 11, 2026, the project has evolved into a cross-platform solution, offering both a high-performance web frontend and a data-centric internal tool.🛠️ Key Features (Implemented)Hybrid Engine: Redundancy logic implemented in both TypeScript (auditLogic.ts) and Python (app.py).Interactive Metrics: Real-time "Current Spend" vs. "Potential Savings" trackers.Dynamic Currency Toggle: Instant forex conversion between INR and USD at a 2026-fixed rate ($1 = ₹84$).Social Proof Integration: Built-in "Share Report" functionality for X/Twitter growth loops.🏗️ Architecture OptionsThis repository contains two implementations of the Auditly engine:VersionTechnologyPrimary Use CaseSaaS Web AppNext.js 14 + TypeScriptConsumer-facing, high-performance web experience.Internal Data ToolPython + StreamlitRapid auditing, data visualization, and internal stakeholder reviews.💻 Technical Setup1. Run the Streamlit Version (Recommended for Data Audit)Bash# Install Streamlit
+pip install streamlit
 
-## Description
-**Auditly AI** is a financial intelligence tool built for the 2026 AI-native workforce. 
+# Launch the application
+streamlit run app.py
+2. Run the Next.js Version (Recommended for UX Review)Bash# Install dependencies
+npm install
 
-As companies and freelancers rapidly adopt multiple AI tools (LLMs, IDEs, and Agents), "Subscription Drift" has become a significant financial leak. Auditly AI performs a deep audit of a user's or team's AI stack to:
-
-* **Identify Redundancies:** Surfaces cases where a user pays for multiple tools with overlapping capabilities (e.g., paying for both ChatGPT Plus and Claude Pro).
-* **Optimize Seat Distribution:** Flags "Zombie Seats" in Team tiers—users who are being paid for but have 0 active usage.
-* **Localized Economic Insights:** Provides real-time savings calculations in **INR (₹)**, helping Indian startups and developers understand their true burn rate.
-
-Built with **Next.js** and **TypeScript**, Auditly AI prioritizes performance (Lighthouse 85+) and data-driven decision-making.
-
----
-
-## 🚀 Day 2 Build Status: [Functional MVP]
-The core engine and interactive dashboard are now operational for the India region.
-
-### 🛠️ Key Features (Implemented)
-- **Redundancy Engine:** Custom logic in `src/utils/auditLogic.ts` to detect stack overlaps.
-- **Dynamic Dashboard:** A high-fidelity UI in `src/app/page.tsx` for real-time spend visualization.
-- **Annual Impact Projection:** Translates monthly waste into yearly "Runway Extension" figures.
-- **2026 Price Index:** Pre-configured with updated Indian rates (e.g., ₹1,999 ChatGPT Plus, ₹0 ChatGPT Go).
-
-## 💻 Technical Setup
-
-1. **Clone the repo:**
-   ```bash
-   git clone [https://github.com/YourUsername/auditly-ai.git](https://github.com/YourUsername/auditly-ai.git)
+# Run the development server
+npm run dev
+🛡️ The Audit LogicThe engine uses Functional Conflict Groups to identify leaks:The Brain Group: ChatGPT Plus ↔️ Claude Pro (Overlap detected $\rightarrow$ ₹1,680 savings).The Code Group: Cursor Pro ↔️ GitHub Copilot (Overlap detected $\rightarrow$ ₹840 savings).📈 DevLogFor a day-by-day breakdown of engineering decisions, including the transition from Next.js to Streamlit and state management strategies, see DEVLOG.md.📝 Final Note for ReviewersThis project demonstrates the ability to build framework-agnostic logic and adapt a product's UI to different technical environments (React vs. Python).Built by Kavyasri S G | Computer Science with Cognitive Systems Graduate | May 2026
